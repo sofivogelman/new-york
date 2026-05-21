@@ -1,0 +1,380 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>NYC Trip · Jun 9–16</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;1,400&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0e0e0e; --card: #161616; --border: #2a2a2a;
+    --accent: #e8c87a; --accent2: #7ab8e8;
+    --text: #f0ede8; --muted: #888; --red: #e87a7a; --green: #7ae8a0;
+  }
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body { background:var(--bg); color:var(--text); font-family:'DM Sans',sans-serif; font-weight:300; min-height:100vh; }
+
+  header { padding:48px 24px 32px; text-align:center; border-bottom:1px solid var(--border); position:relative; overflow:hidden; }
+  header::before { content:''; position:absolute; top:-60px; left:50%; transform:translateX(-50%); width:400px; height:400px; background:radial-gradient(ellipse,rgba(232,200,122,0.08) 0%,transparent 70%); pointer-events:none; }
+  .tag { display:inline-block; font-size:11px; font-weight:500; letter-spacing:0.15em; text-transform:uppercase; color:var(--accent); border:1px solid rgba(232,200,122,0.3); padding:4px 12px; border-radius:20px; margin-bottom:16px; }
+  h1 { font-family:'Playfair Display',serif; font-size:clamp(2.4rem,7vw,4rem); font-weight:700; line-height:1.05; letter-spacing:-0.02em; margin-bottom:8px; }
+  h1 em { font-style:italic; color:var(--accent); }
+  .subtitle { color:var(--muted); font-size:14px; letter-spacing:0.05em; }
+
+  nav { display:flex; gap:6px; padding:16px; overflow-x:auto; scrollbar-width:none; border-bottom:1px solid var(--border); }
+  nav::-webkit-scrollbar { display:none; }
+  .day-btn { flex-shrink:0; padding:8px 16px; border-radius:20px; border:1px solid var(--border); background:transparent; color:var(--muted); font-family:'DM Sans',sans-serif; font-size:13px; cursor:pointer; transition:all 0.2s; white-space:nowrap; }
+  .day-btn:hover { border-color:var(--accent); color:var(--text); }
+  .day-btn.active { background:var(--accent); color:#0e0e0e; border-color:var(--accent); font-weight:500; }
+  .day-btn.boston.active { background:var(--accent2); border-color:var(--accent2); }
+  .day-btn.boston { border-color:rgba(122,184,232,0.4); }
+
+  main { max-width:720px; margin:0 auto; padding:24px 16px 80px; }
+  .day-panel { display:none; }
+  .day-panel.active { display:block; }
+
+  .day-header { margin-bottom:24px; padding-bottom:16px; border-bottom:1px solid var(--border); }
+  .day-header .num { font-size:11px; font-weight:500; letter-spacing:0.12em; text-transform:uppercase; color:var(--accent); margin-bottom:6px; }
+  .day-header .num.bnum { color:var(--accent2); }
+  .day-header h2 { font-family:'Playfair Display',serif; font-size:1.7rem; font-weight:700; line-height:1.2; }
+  .day-header p { color:var(--muted); font-size:13px; margin-top:6px; line-height:1.5; }
+
+  /* Map section */
+  .map-section { margin:20px 0; border-radius:12px; overflow:hidden; border:1px solid var(--border); background:rgba(255,255,255,0.02); }
+  .map-label { font-size:11px; font-weight:500; letter-spacing:0.08em; text-transform:uppercase; color:var(--muted); padding:10px 14px; background:rgba(255,255,255,0.03); border-bottom:1px solid var(--border); }
+  .map-body { padding:14px 14px 12px; }
+  .map-stops { display:flex; flex-wrap:wrap; align-items:center; gap:6px; margin-bottom:12px; }
+  .map-stop { display:inline-flex; align-items:center; gap:5px; font-size:12px; color:var(--text); background:rgba(255,255,255,0.05); border:1px solid var(--border); border-radius:20px; padding:4px 10px; }
+  .map-num { width:16px; height:16px; border-radius:50%; background:var(--accent); color:#0e0e0e; font-size:9px; font-weight:700; display:flex; align-items:center; justify-content:center; flex-shrink:0; }
+  .map-num.b { background:var(--accent2); }
+  .map-arrow { color:var(--border); font-size:14px; line-height:1; }
+  .map-open { display:inline-flex; align-items:center; gap:6px; padding:7px 14px; border-radius:20px; border:1px solid rgba(232,200,122,0.3); background:transparent; color:var(--accent); font-family:'DM Sans',sans-serif; font-size:12px; font-weight:500; cursor:pointer; text-decoration:none; transition:all 0.2s; }
+  .map-open:hover { background:rgba(232,200,122,0.08); }
+  .map-open.b { border-color:rgba(122,184,232,0.3); color:var(--accent2); }
+  .map-open.b:hover { background:rgba(122,184,232,0.08); }
+
+  .activity { display:flex; gap:16px; padding:16px 0; border-bottom:1px solid var(--border); animation:fadeIn 0.3s ease; }
+  @keyframes fadeIn { from{opacity:0;transform:translateY(6px)} to{opacity:1;transform:translateY(0)} }
+  .time-col { flex-shrink:0; width:52px; text-align:right; }
+  .time-col span { font-size:11px; color:var(--muted); font-weight:500; letter-spacing:0.04em; }
+  .dot-line { display:flex; flex-direction:column; align-items:center; gap:2px; flex-shrink:0; width:20px; padding-top:3px; }
+  .dot { width:8px; height:8px; border-radius:50%; background:var(--accent); flex-shrink:0; }
+  .dot.bd { background:var(--accent2); }
+  .dot.fd { background:var(--green); }
+  .dot.nd { background:var(--red); }
+  .line { width:1px; flex:1; min-height:20px; background:var(--border); }
+  .content { flex:1; padding-bottom:8px; }
+  .content h3 { font-size:15px; font-weight:500; margin-bottom:4px; }
+  .content > p { font-size:13px; color:var(--muted); line-height:1.55; }
+
+  .badge { display:inline-block; font-size:10px; font-weight:500; letter-spacing:0.08em; text-transform:uppercase; padding:2px 8px; border-radius:10px; margin-bottom:6px; }
+  .badge.gratis { background:rgba(122,232,160,0.12); color:var(--green); border:1px solid rgba(122,232,160,0.2); }
+  .badge.pago { background:rgba(232,200,122,0.10); color:var(--accent); border:1px solid rgba(232,200,122,0.2); }
+  .badge.comida { background:rgba(232,122,122,0.10); color:var(--red); border:1px solid rgba(232,122,122,0.2); }
+  .badge.noche { background:rgba(122,122,232,0.10); color:#a0a0e8; border:1px solid rgba(122,122,232,0.2); }
+
+  .resto-list { margin-top:10px; display:flex; flex-direction:column; gap:8px; }
+  .resto-item { background:rgba(255,255,255,0.03); border:1px solid var(--border); border-radius:10px; padding:10px 12px; }
+  .resto-name { font-size:13px; font-weight:500; color:var(--text); margin-bottom:2px; }
+  .resto-stars { font-size:11px; color:var(--accent); margin-left:6px; }
+  .resto-desc { font-size:12px; color:var(--muted); line-height:1.4; }
+
+  .tip-box { background:rgba(255,255,255,0.03); border:1px solid var(--border); border-radius:10px; padding:14px 16px; margin-top:24px; }
+  .tip-box .tip-title { font-size:11px; font-weight:500; letter-spacing:0.1em; text-transform:uppercase; color:var(--accent); margin-bottom:8px; }
+  .tip-box p { font-size:13px; color:var(--muted); line-height:1.6; }
+
+  footer { max-width:720px; margin:0 auto; padding:0 16px 40px; }
+  .legend { display:flex; gap:16px; flex-wrap:wrap; padding-top:24px; border-top:1px solid var(--border); }
+  .legend-item { display:flex; align-items:center; gap:6px; font-size:12px; color:var(--muted); }
+  .ldot { width:8px; height:8px; border-radius:50%; }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="tag">Jun 9 – 16 · 2025</div>
+  <h1>New York <em>City</em></h1>
+  <p class="subtitle">7 días · + Boston</p>
+</header>
+
+<nav id="nav"></nav>
+<main id="main"></main>
+
+<footer>
+  <div class="legend">
+    <div class="legend-item"><div class="ldot" style="background:var(--accent)"></div> Atracción</div>
+    <div class="legend-item"><div class="ldot" style="background:var(--green)"></div> Comida</div>
+    <div class="legend-item"><div class="ldot" style="background:var(--red)"></div> Noche</div>
+    <div class="legend-item"><div class="ldot" style="background:var(--accent2)"></div> Boston</div>
+  </div>
+</footer>
+
+<script>
+const days = [
+  {
+    id:0, label:"9 Jun", title:"Llegada & Lower Manhattan",
+    date:"Lunes 9 de junio", boston:false,
+    desc:"Primer día: acomodate, bajá presión y explorá el barrio más histórico de NYC.",
+    mapStops:["DUMBO","Brooklyn Bridge","Financial District","The Dead Rabbit"],
+    mapUrl:"https://www.google.com/maps/dir/DUMBO,Brooklyn,NY/Brooklyn+Bridge,New+York,NY/Financial+District,New+York,NY/30+Water+St,New+York,NY",
+    items:[
+      {time:"Tarde",dot:"dot",badge:"gratis",title:"Check-in & primeros pasos",text:"Dejá las valijas y salí a caminar. El primer contacto con NYC es brutal: el ruido, la escala, el ritmo. Caminá sin destino fijo."},
+      {time:"17hs",dot:"dot",badge:"gratis",title:"Brooklyn Bridge + DUMBO",text:"Caminá el puente desde Manhattan hacia Brooklyn (30 min). Vistas del skyline al atardecer insuperables. Bajá a DUMBO para la foto icónica del puente enmarcado en las calles."},
+      {time:"19hs",dot:"fd",badge:"comida",title:"Cena en DUMBO / Brooklyn",text:"Tres opciones:",restos:[
+        {name:"Juliana's",stars:"★ 4.6",desc:"Pizza napolitana de horno de leña debajo del Brooklyn Bridge. Ícono absoluto. Llegá temprano o reservá."},
+        {name:"Grimaldi's Pizzeria",stars:"★ 4.2",desc:"La rival histórica de Juliana's, también coal-fired. Buenos precios, ambiente de barrio."},
+        {name:"Dellarocco's Brick Oven",stars:"★ 4.6",desc:"En Brooklyn Heights, más tranquila. Excelente relación precio-calidad."}
+      ]},
+      {time:"21hs",dot:"nd",badge:"noche",title:"The Dead Rabbit (Financial District)",text:"Uno de los mejores bares de cócteles del mundo. Pub irlandés abajo, Parlour arriba. Reservá para el Parlour."},
+    ],
+    tip:"Comprá la MetroCard ilimitada semanal ($34) apenas llegues. La vas a amortizar al 100%."
+  },
+  {
+    id:1, label:"10 Jun", title:"Midtown & Arriba del Mundo",
+    date:"Martes 10 de junio", boston:false,
+    desc:"El día de los íconos clásicos: rascacielos, Quinta Avenida y el corazón de Manhattan.",
+    mapStops:["Central Park","Rockefeller Center","Quinta Avenida","Times Square"],
+    mapUrl:"https://www.google.com/maps/dir/Central+Park,New+York,NY/Rockefeller+Center,New+York,NY/Fifth+Avenue,New+York,NY/Times+Square,New+York,NY",
+    items:[
+      {time:"9hs",dot:"dot",badge:"gratis",title:"Central Park",text:"Entrá por Columbus Circle y caminá hacia Strawberry Fields, Bethesda Terrace y Bow Bridge. Junio: todo verde y lleno de vida."},
+      {time:"11hs",dot:"dot",badge:"pago",title:"Top of the Rock – Rockefeller Center",text:"La mejor vista de Manhattan: ves el Empire State desde arriba y Central Park de fondo. Comprá ticket anticipado (~$40)."},
+      {time:"13hs",dot:"fd",badge:"comida",title:"Almuerzo en Midtown",text:"Tres opciones:",restos:[
+        {name:"Eataly – Flatiron",stars:"★ 4.4",desc:"Mercado italiano enorme con restaurantes, pasta, pizza y café. Comida rica sin formalidad."},
+        {name:"Eataly Caffè – Rockefeller",stars:"★ 4.3",desc:"Más pequeño pero justo al lado del Rock. Pizzas, sándwiches y café en el centro de todo."},
+        {name:"Los Tacos No.1",stars:"★ 4.6",desc:"Los mejores tacos de Manhattan. Barato y enorme. Múltiples locales."}
+      ]},
+      {time:"15hs",dot:"dot",badge:"gratis",title:"Quinta Avenida & Times Square",text:"Caminá desde el Rockefeller hacia el sur. St. Patrick's Cathedral, vitrinas de lujo y Times Square. Turístico pero obligatorio."},
+      {time:"17hs",dot:"dot",badge:"pago",title:"SUMMIT One Vanderbilt (opcional)",text:"Mirador con instalaciones de arte: espejos, nubes y vistas 360°. (~$45)."},
+      {time:"20hs",dot:"nd",badge:"noche",title:"Noche en Hell's Kitchen",text:"Midtown West (calles 46–57 oeste). Muchas opciones, mucha gente, mucha vida."},
+    ],
+    tip:"Times Square es mejor de noche por las luces, pero para fotos sin gente: 7am."
+  },
+  {
+    id:2, label:"11 Jun", title:"Brooklyn profundo",
+    date:"Miércoles 11 de junio", boston:false,
+    desc:"El Brooklyn auténtico: Williamsburg, street art, brunch y la mejor vista de Manhattan.",
+    mapStops:["Williamsburg","Bushwick Collective","Prospect Park","Brooklyn Heights Promenade"],
+    mapUrl:"https://www.google.com/maps/dir/Williamsburg,Brooklyn,NY/Bushwick+Collective,Brooklyn,NY/Prospect+Park,Brooklyn,NY/Brooklyn+Heights+Promenade,Brooklyn,NY",
+    items:[
+      {time:"10hs",dot:"fd",badge:"comida",title:"Brunch en Williamsburg",text:"Tres opciones:",restos:[
+        {name:"Isla & Co – Williamsburg",stars:"★ 4.9",desc:"Australiano trendy con avocado toast y brunch creativo. Muy popular, reservá o llegá temprano."},
+        {name:"Hole In The Wall",stars:"★ 4.8",desc:"Pulled pork benedict legendario. Ambiente relajado, llena rápido los fines de semana."},
+        {name:"Sungold",stars:"★ 4.8",desc:"French Toast de chocolate babka y pancakes de maple. Wythe Ave, en pleno Williamsburg."}
+      ]},
+      {time:"12hs",dot:"dot",badge:"gratis",title:"Bushwick Collective",text:"El barrio de street art más grande de NYC: cuadras enteras de murales internacionales. Gratis y al aire libre."},
+      {time:"14hs",dot:"dot",badge:"gratis",title:"Prospect Park",text:"El Central Park de Brooklyn, más relajado y sin turistas. Siempre hay algo pasando."},
+      {time:"16hs",dot:"dot",badge:"gratis",title:"Brooklyn Heights Promenade",text:"Paseo elevado sobre el East River con la vista más cinematográfica de Manhattan. Al atardecer es impresionante."},
+      {time:"19hs",dot:"fd",badge:"comida",title:"Cena en Brooklyn",text:"Repetís alguna pizza del primer día o explorás el barrio."},
+      {time:"21hs",dot:"nd",badge:"noche",title:"Noche en Williamsburg",text:"La mejor escena nocturna para gente joven: bars de vinilo, techno, rooftops. Output o Bossa Nova Civic Club."},
+    ],
+    tip:"Para ir de Manhattan a Williamsburg tomás el subway L desde 14th St. Directo y rápido."
+  },
+  {
+    id:3, label:"12 Jun", title:"BOSTON por el día",
+    date:"Jueves 12 de junio", boston:true,
+    desc:"Excursión de un día a Boston: la ciudad más europea de EE.UU., llena de historia colonial.",
+    mapStops:["South Station","Faneuil Hall","North End","Beacon Hill","Harvard"],
+    mapUrl:"https://www.google.com/maps/dir/South+Station,Boston,MA/Faneuil+Hall,Boston,MA/North+End,Boston,MA/Beacon+Hill,Boston,MA/Harvard+University,Cambridge,MA",
+    items:[
+      {time:"6:30hs",dot:"bd",badge:"pago",title:"Tren desde Penn Station",text:"Amtrak a South Station (Boston), ~4hs. Comprá con anticipación. También hay buses FlixBus/Greyhound más baratos (~$25)."},
+      {time:"10:30hs",dot:"bd",badge:"gratis",title:"Faneuil Hall & Quincy Market",text:"Centro histórico de Boston: mercado de 1742. Tomá café y orientate. El Freedom Trail (línea roja en el piso) arranca cerca."},
+      {time:"11:30hs",dot:"bd",badge:"gratis",title:"Freedom Trail → North End",text:"Seguí la línea roja: Old State House, Boston Massacre Site, Paul Revere's House. El North End es el barrio italiano más antiguo de Boston."},
+      {time:"13hs",dot:"fd",badge:"comida",title:"Almuerzo en North End",text:"Tres opciones en el barrio italiano de Boston:",restos:[
+        {name:"Carmelina's",stars:"★ 4.6",desc:"Lobster Ravioli y pasta fresca artesanal. Muy demandado, reservá con tiempo."},
+        {name:"La Famiglia Giorgio's",stars:"★ 4.4",desc:"El más accesible: porciones generosas, pasta casera, ambiente familiar."},
+        {name:"Mamma Maria",stars:"★ 4.7",desc:"El más elegante: cocina italiana contemporánea en casa histórica. Solo cenas."}
+      ]},
+      {time:"15hs",dot:"bd",badge:"gratis",title:"Beacon Hill & Boston Common",text:"El barrio más bonito de Boston: calles empedradas, casas georgianas. Boston Common es el parque público más antiguo de EE.UU."},
+      {time:"17hs",dot:"bd",badge:"gratis",title:"Harvard o MIT (Cambridge)",text:"10 min en subway (Red Line) al campus de Harvard. Espectacular para fotos."},
+      {time:"20:30hs",dot:"bd",badge:"pago",title:"Tren de regreso a NYC",text:"Llegás a Penn Station alrededor de las 12-1am. Si salís a las 18hs llegás más cómodo."},
+    ],
+    tip:"Boston es muy caminable. El CharlieCard (subway) te ahorra tiempo y no necesitás Uber en el centro."
+  },
+  {
+    id:4, label:"13 Jun", title:"Museos & High Line",
+    date:"Viernes 13 de junio", boston:false,
+    desc:"El día cultural: el Met, Conservatory Garden, High Line y Meatpacking District.",
+    mapStops:["The Met","Conservatory Garden","The High Line","Chelsea Market / Meatpacking"],
+    mapUrl:"https://www.google.com/maps/dir/Metropolitan+Museum+of+Art,New+York,NY/Conservatory+Garden,Central+Park,NY/High+Line,New+York,NY/Chelsea+Market,New+York,NY",
+    items:[
+      {time:"9hs",dot:"dot",badge:"pago",title:"The Metropolitan Museum of Art",text:"Uno de los mejores museos del mundo. Elegí 2-3 alas. Llegá a las 9am para evitar filas. (~$30 sugerido, podés pagar menos)."},
+      {time:"12:30hs",dot:"fd",badge:"comida",title:"Almuerzo zona Met / Midtown",text:"Tres opciones:",restos:[
+        {name:"Café en el propio Met",stars:"",desc:"El Petrie Court Café tiene vistas al jardín. Práctico y lindo."},
+        {name:"Eataly – Flatiron",stars:"★ 4.4",desc:"Si bajás hacia el Flatiron, perfecto para un almuerzo italiano variado."},
+        {name:"Chelsea Market",stars:"★ 4.6",desc:"Mercado gourmet camino al High Line. Tacos, sushi, pasta, pizza — lo que se te ocurra."}
+      ]},
+      {time:"14hs",dot:"dot",badge:"gratis",title:"Conservatory Garden – Central Park",text:"El jardín secreto del parque: tres estilos (inglés, italiano, francés). En junio en plena floración."},
+      {time:"16hs",dot:"dot",badge:"gratis",title:"The High Line",text:"Parque aéreo sobre una línea de tren en desuso. Vistas al Hudson. Arranca en la calle 34 y termina en Meatpacking."},
+      {time:"18:30hs",dot:"fd",badge:"comida",title:"Cena en Meatpacking District",text:"Tres opciones en la zona:",restos:[
+        {name:"Chelsea Market (varios puestos)",stars:"★ 4.6",desc:"Los Tacos No.1, The Lobster Place, Dickson's Farmstand. Casual y riquísimo."},
+        {name:"RH Rooftop Restaurant",stars:"★ 4.4",desc:"Rooftop en la tienda Restoration Hardware. Vistas increíbles. Reservá."},
+        {name:"Genesis House",stars:"★ 4.5",desc:"Restaurante coreano Michelin-recommended arriba de una concesionaria Genesis. Raro, elegante y memorable."}
+      ]},
+      {time:"21hs",dot:"nd",badge:"noche",title:"Rooftop bar",text:"Vintage Green Rooftop (Midtown) o cualquier rooftop del Meatpacking. Reservá los viernes."},
+    ],
+    tip:"El Met tiene precio sugerido, no fijo. Podés pagar lo que quieras si sos turista. $30 es el sugerido."
+  },
+  {
+    id:5, label:"14 Jun", title:"Downtown & Statue of Liberty",
+    date:"Sábado 14 de junio", boston:false,
+    desc:"La Estatua de la Libertad, Wall Street y el Lower East Side para la noche.",
+    mapStops:["Battery Park / Estatua","9/11 Memorial","Wall Street","Lower East Side"],
+    mapUrl:"https://www.google.com/maps/dir/Battery+Park,New+York,NY/9-11+Memorial,New+York,NY/Wall+Street,New+York,NY/Lower+East+Side,New+York,NY",
+    items:[
+      {time:"8:30hs",dot:"dot",badge:"pago",title:"Estatua de la Libertad & Ellis Island",text:"Ferry desde Battery Park. Reservá con semanas de anticipación en sábado de junio. (~$25-$30)."},
+      {time:"12hs",dot:"fd",badge:"comida",title:"Almuerzo al volver del ferry",text:"Tres opciones en el Financial District:",restos:[
+        {name:"Eataly Downtown (Brookfield Place)",stars:"★ 4.3",desc:"La sucursal de FiDi con vistas al Hudson. Perfecto para recuperarse después del ferry."},
+        {name:"Xi'an Famous Foods",stars:"★ 4.5",desc:"Noodles chinos picantes a precios imbatibles. Una de las cadenas más queridas de NYC."},
+        {name:"The Dead Rabbit (si no fuiste Día 1)",stars:"★ 4.7",desc:"Aprovechás para comer algo en el pub histórico."}
+      ]},
+      {time:"14hs",dot:"dot",badge:"gratis",title:"9/11 Memorial & Oculus",text:"Los dos estanques donde estaban las Torres Gemelas. El memorial es gratuito. El Oculus (estación de tren) es arquitectura espectacular."},
+      {time:"16hs",dot:"dot",badge:"gratis",title:"Wall Street & Financial District",text:"El Toro, Fearless Girl y el cañón de edificios art déco. La arquitectura del FiDi es única."},
+      {time:"18hs",dot:"dot",badge:"gratis",title:"Lower East Side",text:"El barrio histórico de inmigrantes, ahora arte y gastronomía alternativa. Rivington, Orchard y Delancey."},
+      {time:"20hs",dot:"fd",badge:"comida",title:"Cena en Lower East Side",text:"Tres opciones en el barrio:",restos:[
+        {name:"Essex",stars:"★ 4.8",desc:"Steakhouse mediterráneo en loft histórico renovado. Cócteles increíbles, vibe elegante pero relajado."},
+        {name:"Isla & Co – Lower East Side",stars:"★ 4.9",desc:"La sucursal del LES del australiano del brunch. Carta de cena distinta y muy buena."},
+        {name:"Russ & Daughters Café",stars:"★ 4.5",desc:"Ícono judío neoyorquino desde 1914. Smoked salmon, bagels, caviar. Una experiencia histórica."}
+      ]},
+      {time:"22hs",dot:"nd",badge:"noche",title:"Noche en LES",text:"La escena más auténtica de Manhattan. Piano's, Motor City Bar, Sour Mouse — todos en la misma zona."},
+    ],
+    tip:"El 9/11 Memorial se llena al mediodía. Tarde en la tarde es más tranquilo y más emotivo."
+  },
+  {
+    id:6, label:"15 Jun", title:"Harlem & Upper Manhattan",
+    date:"Domingo 15 de junio", boston:false,
+    desc:"El uptown: Harlem, brunch con gospel, jazz en vivo y el Cloisters.",
+    mapStops:["Harlem / 125th St","The Cloisters","Fort Tryon Park","Jazz en vivo"],
+    mapUrl:"https://www.google.com/maps/dir/125th+Street,Harlem,New+York,NY/The+Cloisters,New+York,NY/Fort+Tryon+Park,New+York,NY/Minton%27s+Playhouse,New+York,NY",
+    items:[
+      {time:"10hs",dot:"fd",badge:"comida",title:"Brunch gospel en Harlem",text:"Tres opciones:",restos:[
+        {name:"Sylvia's Restaurant",stars:"★ 4.3",desc:"El más histórico de Harlem. Soul food clásica: fried chicken, waffles. Gospel en vivo los domingos. Reservá."},
+        {name:"Angel of Harlem",stars:"★ 4.3",desc:"Ambiente caribeño con brunch bottomless. Excelente vibe y música. Curry chicken increíble."},
+        {name:"The Edge Harlem",stars:"★ 4.5",desc:"Más tranquilo e íntimo. Shrimp and grits elogiados. Sin la cola de Sylvia's."}
+      ]},
+      {time:"12:30hs",dot:"dot",badge:"gratis",title:"125th Street & Apollo Theater",text:"La calle principal de Harlem: el Apollo (exterior gratis), murales históricos. El barrio donde nació el jazz y el hip hop."},
+      {time:"14:30hs",dot:"dot",badge:"pago",title:"The Cloisters (opcional)",text:"Museo de arte medieval en el extremo norte de Manhattan. Arquitectura increíble: un castillo medieval en NYC. (~$30, incluido con el Met)."},
+      {time:"17hs",dot:"dot",badge:"gratis",title:"Fort Tryon Park",text:"El parque más subestimado de NYC. Vistas al Hudson y al Puente George Washington al atardecer. Sin turistas."},
+      {time:"19:30hs",dot:"fd",badge:"comida",title:"Cena en Harlem",text:"Opciones:",restos:[
+        {name:"Angel of Harlem (si no fuiste al brunch)",stars:"★ 4.3",desc:"También abre para cena los viernes y sábados. Ambiente único."},
+        {name:"Restaurantes de Frederick Douglass Blvd",stars:"",desc:"La zona tiene una explosión de restaurantes nuevos. Caminá y entrá al que te llame la atención."}
+      ]},
+      {time:"21:30hs",dot:"nd",badge:"noche",title:"Jazz en vivo en Harlem",text:"Minton's Playhouse o Ginny's Supper Club. Jazz en el barrio que lo inventó. Una de las experiencias más auténticas del viaje."},
+    ],
+    tip:"El domingo es el mejor día para visitar Harlem: gospel, mercados, música en la calle. El barrio está vivo."
+  },
+  {
+    id:7, label:"16 Jun", title:"Último día & Vuelo",
+    date:"Lunes 16 de junio", boston:false,
+    desc:"Mañana libre para lo que quedó pendiente y vuelo de regreso.",
+    mapStops:["Central Park (mañana)","SoHo / pendientes","Aeropuerto"],
+    mapUrl:"https://www.google.com/maps/dir/Central+Park,New+York,NY/SoHo,New+York,NY/JFK+Airport,New+York,NY",
+    items:[
+      {time:"8hs",dot:"dot",badge:"gratis",title:"Morning walk en Central Park",text:"Última mañana. Caminá el parque con calma, tomá un café de un food cart. De mañana, con poca gente, es otro mundo."},
+      {time:"10hs",dot:"dot",badge:"gratis",title:"Lo que te quedó pendiente",text:"¿El MoMA? ¿SoHo? ¿Un barrio que no llegaste a ver? Esta mañana es tuya."},
+      {time:"12hs",dot:"fd",badge:"comida",title:"Último almuerzo en NYC",text:"Para cerrar bien:",restos:[
+        {name:"Bagel con salmón en cualquier deli",stars:"",desc:"La comida más neoyorquina. Ess-a-Bagel o Murray's Bagels para hacerlo como corresponde."},
+        {name:"Smorgasburg (si hay mercado)",stars:"★ 4.6",desc:"Si está abierto, la mejor despedida posible de NYC."}
+      ]},
+      {time:"14hs",dot:"dot",badge:"gratis",title:"Traslado al aeropuerto",text:"JFK: AirTrain + E subway (~1hs, $10). Newark (EWR): NJ Transit (~45 min, $17). LGA: taxi/Uber (~30 min). Salí con 3hs mínimo."},
+    ],
+    tip:"Si el vuelo es tarde, podés dejar las valijas con Bounce o LuggageHero (~$8/día). Están en toda la ciudad."
+  }
+];
+
+function buildNav() {
+  const nav = document.getElementById('nav');
+  days.forEach((d, i) => {
+    const btn = document.createElement('button');
+    btn.className = 'day-btn' + (d.boston ? ' boston' : '') + (i === 0 ? ' active' : '');
+    btn.textContent = d.label + (d.boston ? ' 🇺🇸' : '');
+    btn.onclick = () => showDay(i);
+    nav.appendChild(btn);
+  });
+}
+
+function showDay(idx) {
+  document.querySelectorAll('.day-btn').forEach((b, i) => b.classList.toggle('active', i === idx));
+  document.querySelectorAll('.day-panel').forEach((p, i) => p.classList.toggle('active', i === idx));
+}
+
+function dc(d) {
+  if (d==='fd') return 'dot fd';
+  if (d==='nd') return 'dot nd';
+  if (d==='bd') return 'dot bd';
+  return 'dot';
+}
+
+function buildMap(d) {
+  const isBoston = d.boston;
+  const numClass = isBoston ? 'map-num b' : 'map-num';
+  const btnClass = isBoston ? 'map-open b' : 'map-open';
+  let stopsHtml = '';
+  d.mapStops.forEach((s, i) => {
+    if (i > 0) stopsHtml += '<span class="map-arrow">›</span>';
+    stopsHtml += `<span class="map-stop"><span class="${numClass}">${i+1}</span>${s}</span>`;
+  });
+  return `
+    <div class="map-section">
+      <div class="map-label">🗺 Recorrido del día</div>
+      <div class="map-body">
+        <div class="map-stops">${stopsHtml}</div>
+        <a class="${btnClass}" href="${d.mapUrl}" target="_blank">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z"/><circle cx="12" cy="10" r="3"/></svg>
+          Abrir en Google Maps
+        </a>
+      </div>
+    </div>`;
+}
+
+function buildRestos(restos) {
+  if (!restos || !restos.length) return '';
+  return '<div class="resto-list">' + restos.map(r =>
+    `<div class="resto-item">
+      <div class="resto-name">${r.name}<span class="resto-stars">${r.stars}</span></div>
+      <div class="resto-desc">${r.desc}</div>
+    </div>`
+  ).join('') + '</div>';
+}
+
+function buildPanels() {
+  const main = document.getElementById('main');
+  days.forEach((d, i) => {
+    const panel = document.createElement('div');
+    panel.className = 'day-panel' + (i === 0 ? ' active' : '');
+    const numClass = d.boston ? 'num bnum' : 'num';
+    let html = `
+      <div class="day-header">
+        <div class="${numClass}">${d.date}</div>
+        <h2>${d.title}</h2>
+        <p>${d.desc}</p>
+      </div>
+      ${buildMap(d)}
+    `;
+    d.items.forEach((item, idx) => {
+      const isLast = idx === d.items.length - 1;
+      html += `
+        <div class="activity">
+          <div class="time-col"><span>${item.time}</span></div>
+          <div class="dot-line">
+            <div class="${dc(item.dot)}"></div>
+            ${!isLast ? '<div class="line"></div>' : ''}
+          </div>
+          <div class="content">
+            <span class="badge ${item.badge}">${item.badge}</span>
+            <h3>${item.title}</h3>
+            <p>${item.text}</p>
+            ${buildRestos(item.restos)}
+          </div>
+        </div>`;
+    });
+    if (d.tip) html += `<div class="tip-box"><div class="tip-title">💡 Tip del día</div><p>${d.tip}</p></div>`;
+    panel.innerHTML = html;
+    main.appendChild(panel);
+  });
+}
+
+buildNav();
+buildPanels();
+</script>
+</body>
+</html>
